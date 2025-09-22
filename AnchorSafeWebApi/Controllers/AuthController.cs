@@ -13,6 +13,10 @@ using System.Web.Http;
 
 namespace AnchorSafe.API.Controllers
 {
+    /// <summary>
+    /// Provides legacy authentication endpoints for AnchorSafe clients.
+    /// </summary>
+    [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi = false)]
     [AllowAnonymous]
     public class AuthController : ApiController
     {

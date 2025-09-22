@@ -14,6 +14,10 @@ using System.Web.Http;
 
 namespace AnchorSafe.API.Controllers
 {
+    /// <summary>
+    /// Supplies core AnchorSafe operational endpoints.
+    /// </summary>
+    [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi = false)]
     public class MainController : ApiController
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

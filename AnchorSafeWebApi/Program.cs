@@ -1,4 +1,7 @@
+using AnchorSafe.API.Compatibility;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using log4net.Config;
 using Microsoft.AspNetCore.Http;
 using Microsoft.OpenApi.Models;
@@ -19,6 +22,7 @@ internal class Program
         builder.Services.AddControllers(options =>
         {
             options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+            options.Conventions.Add(new LegacyApiExplorerConvention());
         }).AddNewtonsoftJson(settings =>
         {
             settings.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
@@ -33,6 +37,18 @@ internal class Program
                 Version = "v1",
                 Description = "Legacy-compatible AnchorSafe API surface"
             });
+
+            options.ResolveConflictingActions(apiDescriptions =>
+                apiDescriptions
+                    .OrderByDescending(description => description.ParameterDescriptions.Count)
+                    .First());
+
+            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            if (File.Exists(xmlPath))
+            {
+                options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+            }
         });
 
         var app = builder.Build();

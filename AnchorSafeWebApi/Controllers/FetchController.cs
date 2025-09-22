@@ -22,6 +22,10 @@ using System.Web.Http;
 
 namespace AnchorSafe.API.Controllers.v2
 {
+    /// <summary>
+    /// Provides version 2 data export endpoints for external integrations.
+    /// </summary>
+    [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi = false)]
     public class FetchController : ApiController
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -106,35 +110,35 @@ namespace AnchorSafe.API.Controllers.v2
         public async Task<IHttpActionResult> Index([FromUri] DateTime? ts, [FromUri] Int64 ps = 25)
         {
             log.Info("Entering Index");
-            log.Debug($"Parameters – ts: {(ts.HasValue ? ts.Value.ToString("O") : "null")}, ps: {ps}");
+            log.Debug($"Parameters â€“ ts: {(ts.HasValue ? ts.Value.ToString("O") : "null")}, ps: {ps}");
 
             (Boolean success, IHttpActionResult result, Users user) authResult = await TryAuthenticate();
             if (!authResult.success)
             {
-                log.Warn("Index – authentication failed.");
+                log.Warn("Index â€“ authentication failed.");
                 return authResult.result;
             }
 
             if (ts == null)
             {
-                log.Debug("Index – timestamp is null. Defaulting to Jan 1, 2000.");
+                log.Debug("Index â€“ timestamp is null. Defaulting to Jan 1, 2000.");
                 ts = new DateTime(2000, 1, 1);
             }
-            log.Debug($"Index – timestamp parameter: {ts.Value:O}");
+            log.Debug($"Index â€“ timestamp parameter: {ts.Value:O}");
             if (ts.Value < new DateTime(2000, 1, 1) || ts.Value > DateTime.Today.AddDays(7))
             {
-                log.Warn($"Index – timestamp out of range: {ts.Value:O}");
+                log.Warn($"Index â€“ timestamp out of range: {ts.Value:O}");
                 IHttpActionResult badTs = ResponseMessage(Request.CreateResponse(HttpStatusCode.BadRequest, new { result = "Timestamp is out of range." }));
                 log.Info("Exiting Index with BadRequest (timestamp).");
                 return badTs;
             }
 
             ts = CheckForceSync(ts.Value);
-            log.Debug($"Index – timestamp after CheckForceSync: {ts:O}");
+            log.Debug($"Index â€“ timestamp after CheckForceSync: {ts:O}");
 
             if (ps <= 0 || ps > Int32.MaxValue)
             {
-                log.Warn($"Index – pageSize out of range: {ps}");
+                log.Warn($"Index â€“ pageSize out of range: {ps}");
                 IHttpActionResult badPs = ResponseMessage(Request.CreateResponse(HttpStatusCode.BadRequest, new { result = "PageSize is out of range." }));
                 log.Info("Exiting Index with BadRequest (pageSize).");
                 return badPs;
@@ -149,7 +153,7 @@ namespace AnchorSafe.API.Controllers.v2
             using (AnchorSafe_DbContext db = new AnchorSafe_DbContext())
             {
                 db.Configuration.LazyLoadingEnabled = false;
-                log.Debug("Index – querying database for counts.");
+                log.Debug("Index â€“ querying database for counts.");
 
                 //IQueryable<Inspections> inspectionsQ = db.Inspections.Where(x => x.DateModified >= ts && !x.IsDeleted)
                 //                                                      .OrderBy(x => x.Id)
@@ -172,7 +176,7 @@ namespace AnchorSafe.API.Controllers.v2
                 result.Sites.Count = await sitesQ.LongCountAsync();
                 result.Locations.Count = await locationsQ.LongCountAsync();
 
-                log.Debug($"Index – counts: Inspections={result.Inspections.Count}, Definitions={result.Definitions.Count}, Categories={result.Categories.Count}, Clients={result.Clients.Count}, Sites={result.Sites.Count}, Locations={result.Locations.Count}");
+                log.Debug($"Index â€“ counts: Inspections={result.Inspections.Count}, Definitions={result.Definitions.Count}, Categories={result.Categories.Count}, Clients={result.Clients.Count}, Sites={result.Sites.Count}, Locations={result.Locations.Count}");
 
                 result.Inspections.Pages = 0; // (result.Inspections.Count + ps - 1) / ps;
                 result.Definitions.Pages = (result.Definitions.Count + ps - 1) / ps;
@@ -182,12 +186,12 @@ namespace AnchorSafe.API.Controllers.v2
                 result.Locations.Pages = (result.Locations.Count + ps - 1) / ps;
 
                 String dataPullType = (ts.Value.Year == 2000) ? "Full" : "Refresh";
-                log.Info($"Index – User {authResult.user.Id} performed {dataPullType} Index Pull at {ts:O}");
+                log.Info($"Index â€“ User {authResult.user.Id} performed {dataPullType} Index Pull at {ts:O}");
                 new ASLogs().AddLogEntry($"{dataPullType} (App) - Index Pull", (Int32)Dashboard.LogType.DataPull, authResult.user.Id);
             }
 
             GlobalConfiguration.Configuration.Formatters.JsonFormatter.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-            log.Info("Exiting Index – returning compressed JSON.");
+            log.Info("Exiting Index â€“ returning compressed JSON.");
             return await GZJson(result);
         }
 
@@ -202,42 +206,42 @@ namespace AnchorSafe.API.Controllers.v2
         public async Task<IHttpActionResult> Inspections([FromUri] DateTime? ts, [FromUri] Int64 p = 0, [FromUri] Int64 ps = Int64.MaxValue)
         {
             log.Info("Entering Inspections");
-            log.Debug($"Parameters – ts: {(ts.HasValue ? ts.Value.ToString("O") : "null")}, p: {p}, ps: {ps}");
+            log.Debug($"Parameters â€“ ts: {(ts.HasValue ? ts.Value.ToString("O") : "null")}, p: {p}, ps: {ps}");
 
             (Boolean success, IHttpActionResult result, Users user) authResult = await TryAuthenticate();
             if (!authResult.success)
             {
-                log.Warn("Inspections – authentication failed.");
+                log.Warn("Inspections â€“ authentication failed.");
                 return authResult.result;
             }
 
             //if (ts == null)
             //{
-            //    log.Debug("Inspections – timestamp is null. Defaulting to Jan 1, 2000.");
+            //    log.Debug("Inspections â€“ timestamp is null. Defaulting to Jan 1, 2000.");
             //    ts = new DateTime(2000, 1, 1);
             //}
-            //log.Debug($"Inspections – timestamp parameter: {ts.Value:O}");
+            //log.Debug($"Inspections â€“ timestamp parameter: {ts.Value:O}");
             //if (ts.Value < new DateTime(2000, 1, 1) || ts.Value > DateTime.Today.AddDays(7))
             //{
-            //    log.Warn($"Inspections – timestamp out of range: {ts.Value:O}");
+            //    log.Warn($"Inspections â€“ timestamp out of range: {ts.Value:O}");
             //    IHttpActionResult badTs = ResponseMessage(Request.CreateResponse(HttpStatusCode.BadRequest, new { result = "Timestamp is out of range." }));
             //    log.Info("Exiting Inspections with BadRequest (timestamp).");
             //    return badTs;
             //}
 
             //ts = CheckForceSync(ts.Value);
-            //log.Debug($"Inspections – timestamp after CheckForceSync: {ts:O}");
+            //log.Debug($"Inspections â€“ timestamp after CheckForceSync: {ts:O}");
 
             //if (p < 0)
             //{
-            //    log.Warn($"Inspections – page out of range: {p}");
+            //    log.Warn($"Inspections â€“ page out of range: {p}");
             //    IHttpActionResult badP = ResponseMessage(Request.CreateResponse(HttpStatusCode.BadRequest, new { result = "Page is out of range." }));
             //    log.Info("Exiting Inspections with BadRequest (page).");
             //    return badP;
             //}
             //if (ps <= 0 || ps > Int32.MaxValue)
             //{
-            //    log.Warn($"Inspections – pageSize out of range: {ps}");
+            //    log.Warn($"Inspections â€“ pageSize out of range: {ps}");
             //    IHttpActionResult badPs = ResponseMessage(Request.CreateResponse(HttpStatusCode.BadRequest, new { result = "PageSize is out of range." }));
             //    log.Info("Exiting Inspections with BadRequest (pageSize).");
             //    return badPs;
@@ -247,24 +251,24 @@ namespace AnchorSafe.API.Controllers.v2
             //using (AnchorSafe_DbContext db = new AnchorSafe_DbContext())
             //{
             //    db.Configuration.LazyLoadingEnabled = false;
-            //    log.Debug("Inspections – querying database.");
+            //    log.Debug("Inspections â€“ querying database.");
 
             //    IQueryable<Inspections> inspectionsQ = db.Inspections.Where(x => x.DateModified >= ts && !x.IsDeleted)
             //                                                          .OrderBy(x => x.Id);
             //    Int64 total = await inspectionsQ.LongCountAsync();
-            //    log.Debug($"Inspections – total count: {total}");
+            //    log.Debug($"Inspections â€“ total count: {total}");
 
             //    IEnumerable<Models.DTO.Inspection> pageItems = (await inspectionsQ.Skip((Int32)(p * ps)).Take((Int32)ps).ToListAsync()).Select(i => new Models.DTO.Inspection(i));
 
             //    result = new DataPage<Models.DTO.Inspection>(ts.Value, total, p, ps, pageItems);
 
             //    String dataPullType = (ts.Value.Year == 2000) ? "Full" : "Refresh";
-            //    log.Info($"Inspections – User {authResult.user.Id} performed {dataPullType} Data Pull: {p * ps} to {Math.Min((p * ps) + ps, total)} of {total} items.");
+            //    log.Info($"Inspections â€“ User {authResult.user.Id} performed {dataPullType} Data Pull: {p * ps} to {Math.Min((p * ps) + ps, total)} of {total} items.");
             //    new ASLogs().AddLogEntry($"{dataPullType} (App) - {p * ps} to {Math.Min((p * ps) + ps, total)} of {total} Inspection(s)", (Int32)Dashboard.LogType.DataPull, authResult.user.Id);
             //}
 
             GlobalConfiguration.Configuration.Formatters.JsonFormatter.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-            log.Info("Exiting Inspections – returning compressed JSON.");
+            log.Info("Exiting Inspections â€“ returning compressed JSON.");
 
             result = new DataPage<Models.DTO.Inspection>(ts.Value, 0, p, ps, Array.Empty<Models.DTO.Inspection>());
             return await GZJson(result);

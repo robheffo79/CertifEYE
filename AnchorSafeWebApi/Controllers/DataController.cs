@@ -21,6 +21,10 @@ using System.Web.Http;
 
 namespace AnchorSafe.API.Controllers
 {
+    /// <summary>
+    /// Exposes data retrieval and synchronisation endpoints used by the mobile application.
+    /// </summary>
+    [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi = false)]
     public class DataController : ApiController
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -659,7 +663,7 @@ namespace AnchorSafe.API.Controllers
 
                         if (decodeResult != SKCodecResult.Success)
                         {
-                            // IncompleteInput or Error means we couldn’t load fully
+                            // IncompleteInput or Error means we couldnÂ’t load fully
                             throw new ArgumentException(
                                 "Image data is incomplete or corrupted and cannot be fully decoded.",
                                 nameof(imageData)
@@ -667,7 +671,7 @@ namespace AnchorSafe.API.Controllers
                         }
                     }
 
-                    // All good—return the format we found
+                    // All goodÂ—return the format we found
                     return codec.EncodedFormat;
                 }
             });
@@ -707,7 +711,7 @@ namespace AnchorSafe.API.Controllers
                 return false;
             }
 
-            // safe to decode—regex guarantees no FormatException
+            // safe to decodeÂ—regex guarantees no FormatException
             data = Convert.FromBase64String(text);
             return true;
         }
