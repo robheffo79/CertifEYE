@@ -1,0 +1,6 @@
+@AnchorSafeWebApi_HostAddress = http://localhost:5181
+
+GET {{AnchorSafeWebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

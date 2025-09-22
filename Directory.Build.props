@@ -1,0 +1,18 @@
+<Project>
+  <PropertyGroup>
+    <SolutionDir Condition="'$(SolutionDir)'==''">$(MSBuildThisFileDirectory)</SolutionDir>
+    <SolutionPackages Condition="'$(SolutionPackages)'==''">$(SolutionDir)packages\</SolutionPackages>
+  </PropertyGroup>
+  <PropertyGroup>
+    <_VsTargets Condition="'$(_VsTargets)'=='' and Exists('C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VisualStudio\v17.0\WebApplications\Microsoft.WebApplication.targets')">C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VisualStudio\v17.0</_VsTargets>
+    <_VsTargets Condition="'$(_VsTargets)'=='' and Exists('C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Microsoft\VisualStudio\v17.0\WebApplications\Microsoft.WebApplication.targets')">C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Microsoft\VisualStudio\v17.0</_VsTargets>
+    <_VsTargets Condition="'$(_VsTargets)'=='' and Exists('C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VisualStudio\v17.0\WebApplications\Microsoft.WebApplication.targets')">C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VisualStudio\v17.0</_VsTargets>
+    <_VsTargets Condition="'$(_VsTargets)'=='' and Exists('C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Microsoft\VisualStudio\v16.0\WebApplications\Microsoft.WebApplication.targets')">C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Microsoft\VisualStudio\v16.0</_VsTargets>
+    <_VsTargets Condition="'$(_VsTargets)'=='' and Exists('C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VisualStudio\v16.0\WebApplications\Microsoft.WebApplication.targets')">C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VisualStudio\v16.0</_VsTargets>
+    <VSToolsPath Condition="'$(_VsTargets)'!=''">$(_VsTargets)</VSToolsPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectExtension)'=='.csproj' and '$(TargetFrameworkVersion)'!='' and '$(TargetFramework)'=='' and '$(TargetFrameworks)'==''">
+    <TargetFrameworkMoniker Condition="'$(TargetFrameworkMoniker)'==''">.NETFramework,Version=$(TargetFrameworkVersion)</TargetFrameworkMoniker>
+    <RestoreProjectStyle Condition="'$(RestoreProjectStyle)'==''">PackagesConfig</RestoreProjectStyle>
+  </PropertyGroup>
+</Project>
