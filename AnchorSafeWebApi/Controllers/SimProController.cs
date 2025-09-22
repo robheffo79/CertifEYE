@@ -11,6 +11,10 @@ using System.Web.Http;
 
 namespace AnchorSafe.API.Controllers
 {
+    /// <summary>
+    /// Bridges AnchorSafe with SimPro system endpoints.
+    /// </summary>
+    [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi = false)]
     public class SimProController : ApiController
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
