@@ -1,6 +1,6 @@
-﻿using AnchorSafe.API.Services;
+using AnchorSafe.API.Helpers;
+using Microsoft.Extensions.Configuration;
 using System;
-using System.Configuration;
 using System.Security.Cryptography;
 using log4net;
 using System.Reflection;
@@ -29,9 +29,10 @@ namespace AnchorSafe.API.Services
             log.Info("Entering Security.Init()");
             try
             {
-                SaltByteLength = Int32.Parse(ConfigurationManager.AppSettings["AS_API_SecSaltByteLength"]);
-                DerivedKeyLength = Int32.Parse(ConfigurationManager.AppSettings["AS_API_SecDerivedKeyLength"]);
-                InterationCount = Int32.Parse(ConfigurationManager.AppSettings["AS_API_SecIterationCount"]);
+                IConfiguration configuration = ConfigurationHelper.Configuration;
+                SaltByteLength = configuration.GetValue<int>("AS_API_SecSaltByteLength");
+                DerivedKeyLength = configuration.GetValue<int>("AS_API_SecDerivedKeyLength");
+                InterationCount = configuration.GetValue<int>("AS_API_SecIterationCount");
                 Initiated = true;
                 log.Debug($"Loaded settings: SaltByteLength={SaltByteLength}, DerivedKeyLength={DerivedKeyLength}, IterationCount={InterationCount}");
                 log.Info("Exiting Security.Init() successfully");

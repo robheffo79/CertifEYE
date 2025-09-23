@@ -1,8 +1,7 @@
-﻿using AnchorSafe.API.Helpers;
+using AnchorSafe.API.Helpers;
 using log4net;
 using Microsoft.IdentityModel.Tokens;
 using System;
-using System.Configuration;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Reflection;
@@ -47,7 +46,8 @@ namespace AnchorSafe.API.Services
             string jwt = null;
             try
             {
-                byte[] key = Convert.FromBase64String(ConfigurationManager.AppSettings["AS_API_TokenSecret"]);
+                string secret = ConfigurationHelper.Configuration["AS_API_TokenSecret"] ?? string.Empty;
+                byte[] key = Convert.FromBase64String(secret);
                 log.Debug("Decoded token secret key from configuration");
 
                 SymmetricSecurityKey securityKey = new SymmetricSecurityKey(key);
@@ -95,7 +95,8 @@ namespace AnchorSafe.API.Services
 
                 Boolean validateExpiration = !Api.IsApplicationDevMode();
 
-                byte[] key = Convert.FromBase64String(ConfigurationManager.AppSettings["AS_API_TokenSecret"]);
+                string secret = ConfigurationHelper.Configuration["AS_API_TokenSecret"] ?? string.Empty;
+                byte[] key = Convert.FromBase64String(secret);
                 TokenValidationParameters parameters = new TokenValidationParameters
                 {
                     RequireExpirationTime = validateExpiration,
@@ -158,7 +159,7 @@ namespace AnchorSafe.API.Services
 
             if (String.IsNullOrWhiteSpace(username) && Api.IsApplicationDevMode())
             {
-                username = ConfigurationManager.AppSettings["AS_API_DevModeNullUser"];
+                username = ConfigurationHelper.Configuration["AS_API_DevModeNullUser"];
                 if (!String.IsNullOrWhiteSpace(username))
                 {
                     log.Warn($"API is in Dev mode and is returning a default username '{username}'");

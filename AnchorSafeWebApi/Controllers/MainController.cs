@@ -1,8 +1,9 @@
+using AnchorSafe.API.Helpers;
 using AnchorSafe.Data;
 using AnchorSafe.SimPro;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
@@ -22,14 +23,21 @@ namespace AnchorSafe.API.Controllers
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly SimProSettings simProSettings = new SimProSettings
+        private readonly IConfiguration configuration;
+        private readonly SimProSettings simProSettings;
+
+        public MainController()
         {
-            Host = ConfigurationManager.AppSettings["SimPro_API_BaseUrl"],
-            Version = ConfigurationManager.AppSettings["SimPro_API_Version"],
-            Key = ConfigurationManager.AppSettings["SimPro_API_Key"],
-            CompanyId = Int32.Parse(ConfigurationManager.AppSettings["SimPro_API_CompanyId"]),
-            CachePath = ConfigurationManager.AppSettings["SimPro_API_CachePath"]
-        };
+            configuration = ConfigurationHelper.Configuration;
+            simProSettings = new SimProSettings
+            {
+                Host = configuration["SimPro_API_BaseUrl"] ?? string.Empty,
+                Version = configuration["SimPro_API_Version"] ?? string.Empty,
+                Key = configuration["SimPro_API_Key"] ?? string.Empty,
+                CompanyId = configuration.GetValue<int>("SimPro_API_CompanyId"),
+                CachePath = configuration["SimPro_API_CachePath"] ?? string.Empty
+            };
+        }
 
         /// <summary>
         /// Simple greeting endpoint.
@@ -136,11 +144,11 @@ namespace AnchorSafe.API.Controllers
                 log.Debug($"User-Agent header: {ua}");
                 if (ua.Contains("iOS"))
                 {
-                    version = ConfigurationManager.AppSettings["AS_App_Latest_iOS"];
+                    version = configuration["AS_App_Latest_iOS"] ?? string.Empty;
                 }
                 else if (ua.Contains("Android"))
                 {
-                    version = ConfigurationManager.AppSettings["AS_App_Latest_Android"];
+                    version = configuration["AS_App_Latest_Android"] ?? string.Empty;
                 }
                 log.Info($"GetLatestAppVersion | Determined version = {version}");
             }

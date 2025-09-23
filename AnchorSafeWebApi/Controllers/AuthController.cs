@@ -1,9 +1,9 @@
 using AnchorSafe.API.Helpers;
 using AnchorSafe.API.Services;
 using AnchorSafe.Data;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
@@ -21,11 +21,13 @@ namespace AnchorSafe.API.Controllers
     public class AuthController : ApiController
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly IConfiguration configuration;
         private Int32 ExpiryDuration = -1;    // In minutes
 
         public AuthController()
         {
-            ExpiryDuration = Int32.Parse(ConfigurationManager.AppSettings["AS_API_TokenExpiryDuration"]);
+            configuration = ConfigurationHelper.Configuration;
+            ExpiryDuration = configuration.GetValue<int>("AS_API_TokenExpiryDuration");
         }
 
         /// <summary>

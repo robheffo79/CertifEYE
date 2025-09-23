@@ -2,10 +2,10 @@ using AnchorSafe.API.Helpers;
 using AnchorSafe.API.Services;
 using AnchorSafe.Data;
 using Antlr.Runtime;
+using Microsoft.Extensions.Configuration;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.Entity;
 using System.Drawing;
 using System.IO;
@@ -28,6 +28,12 @@ namespace AnchorSafe.API.Controllers
     public class DataController : ApiController
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly IConfiguration configuration;
+
+        public DataController()
+        {
+            configuration = ConfigurationHelper.Configuration;
+        }
 
         /// <summary>
         /// Health check endpoint for DataController.
@@ -457,7 +463,7 @@ namespace AnchorSafe.API.Controllers
                     log.Debug($"Nonce={appInspection.Nonce}, existsCount={existsCount}");
                     if (existsCount >= 0)
                     {
-                        Int32 wmUserId = Int32.Parse(ConfigurationManager.AppSettings["AS_API_WebMatrixUserId"]);
+                        Int32 wmUserId = configuration.GetValue<int>("AS_API_WebMatrixUserId");
                         if (user.Id != wmUserId && user.Id != appInspection.UserId && !user.IsAdmin)
                         {
                             log.Warn($"AppSyncInspections | Permission denied for user {user.Id} on inspection UserId {appInspection.UserId}");
@@ -719,7 +725,7 @@ namespace AnchorSafe.API.Controllers
         [HttpGet]
         public async Task<IHttpActionResult> RepairImages([FromUri]Boolean test = true)
         {
-            String basePath = ConfigurationManager.AppSettings["AS_API_ImageSaveFilePath"];
+            String basePath = configuration["AS_API_ImageSaveFilePath"] ?? string.Empty;
             List<String> results = new List<String>();
 
             using (AnchorSafe_DbContext db = new AnchorSafe_DbContext())
@@ -858,7 +864,7 @@ namespace AnchorSafe.API.Controllers
                     }
 
                     // Compute file paths
-                    String basePath = ConfigurationManager.AppSettings["AS_API_ImageSaveFilePath"];
+                    String basePath = configuration["AS_API_ImageSaveFilePath"] ?? string.Empty;
                     String year = inspection.InspectionDate.Value.Year.ToString();
                     String month = inspection.InspectionDate.Value.ToString("MM");
                     String dir = Path.Combine(basePath, year, month, inspection.Id.ToString());
@@ -994,7 +1000,7 @@ namespace AnchorSafe.API.Controllers
                         {
                             if (!m.Media.Contains(".jpg") && m.Media != "SNIPPED")
                             {
-                                String pathDir = Path.Combine(ConfigurationManager.AppSettings["AS_API_ImageSaveFilePath"],
+                                String pathDir = Path.Combine(configuration["AS_API_ImageSaveFilePath"] ?? string.Empty,
                                                              itm.Inspections.InspectionDate.Value.Year.ToString(),
                                                              itm.Inspections.InspectionDate.Value.ToString("MM"),
                                                              itm.InspectionId.ToString());
@@ -1104,7 +1110,8 @@ namespace AnchorSafe.API.Controllers
                 return Task.FromResult(forbidden);
             }
 
-            String path = ConfigurationManager.AppSettings["AS_API_ImageSaveFilePath"] + "\\" + Guid.NewGuid().ToString();
+            String basePath = configuration["AS_API_ImageSaveFilePath"] ?? string.Empty;
+            String path = Path.Combine(basePath, Guid.NewGuid().ToString());
             log.Debug($"Generated test filename: {path}");
             IHttpActionResult response = Ok(path);
             log.Info("Exiting TestFilename()");
@@ -1177,7 +1184,7 @@ namespace AnchorSafe.API.Controllers
             using (AnchorSafe_DbContext db = new AnchorSafe_DbContext())
             {
                 db.Configuration.LazyLoadingEnabled = false;
-                Int32 status = Convert.ToInt32(ConfigurationManager.AppSettings["AS_API_UnassignedStatus"]);
+                Int32 status = configuration.GetValue<int>("AS_API_UnassignedStatus");
                 log.Debug($"Filtering inspections with status={status}");
                 result = db.Inspections.Where(x => x.InspectionStatusId == status)
                                        .OrderBy(x => x.Sites.SiteName)
@@ -1642,7 +1649,7 @@ namespace AnchorSafe.API.Controllers
                     log.Debug("Saved device metadata for Dump");
                 }
 
-                String uploadPath = ConfigurationManager.AppSettings["AS_API_DataSaveFilePath"];
+                String uploadPath = configuration["AS_API_DataSaveFilePath"] ?? string.Empty;
                 MultipartFormDataStreamProvider provider = new MultipartFormDataStreamProvider(uploadPath);
                 await Request.Content.ReadAsMultipartAsync(provider);
                 log.Debug("Multipart content read");
@@ -1690,7 +1697,7 @@ namespace AnchorSafe.API.Controllers
             log.Info("Entering Dumps()");
             log.Debug($"Parameter userId={userId}");
 
-            String dumpUploadPath = ConfigurationManager.AppSettings["AS_API_DataSaveFilePath"];
+            String dumpUploadPath = configuration["AS_API_DataSaveFilePath"] ?? string.Empty;
             List<DataDump> dumpList = new List<DataDump>();
 
             DirectoryInfo di = new DirectoryInfo(dumpUploadPath);
@@ -1699,7 +1706,7 @@ namespace AnchorSafe.API.Controllers
 
             using (AnchorSafe_DbContext db = new AnchorSafe_DbContext())
             {
-                String baseUrl = ConfigurationManager.AppSettings["AS_API_BaseUrl"];
+                String baseUrl = configuration["AS_API_BaseUrl"] ?? string.Empty;
                 foreach (FileInfo file in files)
                 {
                     Int32 fileUserId = -1;
@@ -1737,7 +1744,7 @@ namespace AnchorSafe.API.Controllers
             log.Info("Entering DumpDownload()");
             log.Debug($"Parameter fileName={fileName}");
 
-            String dumpUploadPath = ConfigurationManager.AppSettings["AS_API_DataSaveFilePath"];
+            String dumpUploadPath = configuration["AS_API_DataSaveFilePath"] ?? string.Empty;
             DirectoryInfo di = new DirectoryInfo(dumpUploadPath);
             FileInfo fi = di.GetFiles("*.zip", SearchOption.AllDirectories).Where(x => x.Name == fileName).FirstOrDefault();
 
