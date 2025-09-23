@@ -1,7 +1,6 @@
 ﻿using AnchorSafe.Data;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using log4net;
 using System.Reflection;
@@ -41,7 +40,7 @@ namespace AnchorSafe.API.Helpers
         public static ApplicationStatus ApplicationMode()
         {
             log.Info("Entering Api.ApplicationMode()");
-            string applicationMode = ConfigurationManager.AppSettings["AS_API_ApplicationMode"];
+            string applicationMode = ConfigurationHelper.Configuration["AS_API_ApplicationMode"] ?? string.Empty;
             log.Debug($"Configuration AS_API_ApplicationMode = '{applicationMode}'");
 
             ApplicationStatus status = applicationMode?.ToLower().Contains("live") == true

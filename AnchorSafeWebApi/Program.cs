@@ -1,4 +1,5 @@
 using AnchorSafe.API.Compatibility;
+using AnchorSafe.API.Helpers;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -50,6 +51,8 @@ internal class Program
                 options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
             }
         });
+
+        ConfigurationHelper.Initialize(builder.Configuration);
 
         var app = builder.Build();
 

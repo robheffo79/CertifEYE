@@ -3,10 +3,10 @@ using AnchorSafe.API.Models.v2;
 using AnchorSafe.API.Services;
 using AnchorSafe.Data;
 using AnchorSafe.SimPro.DTO.Models;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
 using System.Data.Entity;
 using System.Data.SqlClient;
@@ -29,7 +29,14 @@ namespace AnchorSafe.API.Controllers.v2
     public class FetchController : ApiController
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private static readonly String connectionString = ConfigurationManager.ConnectionStrings["SiteSqlServer"].ConnectionString;
+        private readonly IConfiguration configuration;
+        private readonly String connectionString;
+
+        public FetchController()
+        {
+            configuration = ConfigurationHelper.Configuration;
+            connectionString = configuration.GetConnectionString("SiteSqlServer") ?? string.Empty;
+        }
 
         private async Task<(Boolean success, IHttpActionResult result, Users user)> TryAuthenticate()
         {
@@ -518,8 +525,14 @@ namespace AnchorSafe.API.Controllers.v2
 
         public DateTime CheckForceSync(DateTime ts)
         {
-            if (bool.Parse(ConfigurationManager.AppSettings["AS_API_ForceSync"].ToString()))
-                DateTime.TryParse(ConfigurationManager.AppSettings["AS_API_ForceSyncDate"].ToString(), out ts);
+            if (configuration.GetValue<bool>("AS_API_ForceSync"))
+            {
+                String forceSyncDate = configuration["AS_API_ForceSyncDate"];
+                if (DateTime.TryParse(forceSyncDate, out DateTime parsedDate))
+                {
+                    ts = parsedDate;
+                }
+            }
 
             return ts;
         }

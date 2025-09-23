@@ -1,1 +1,1 @@
-global using ConfigurationManager = System.Configuration.ConfigurationManager;
+// Global using directives for AnchorSafeWebApi project.

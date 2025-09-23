@@ -4,6 +4,7 @@ using AnchorSafe.SimPro.DTO.Models.Asset;
 using AnchorSafe.SimPro.DTO.Models.People;
 using AnchorSafe.SimPro.DTO.Models.Projects;
 using AnchorSafe.SimPro.Helpers;
+using Microsoft.Extensions.Configuration;
 using System.Data.Entity;
 using System.Diagnostics;
 using System.Net;
@@ -19,14 +20,21 @@ namespace AnchorSafe.API.Controllers
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        SimPro.SimProSettings simProSettings = new AnchorSafe.SimPro.SimProSettings()
+        private readonly IConfiguration configuration;
+        private readonly SimPro.SimProSettings simProSettings;
+
+        public SimProController()
         {
-            Host = ConfigurationManager.AppSettings["SimPro_API_BaseUrl"].ToString(),
-            Version = ConfigurationManager.AppSettings["SimPro_API_Version"].ToString(),
-            Key = ConfigurationManager.AppSettings["SimPro_API_Key"].ToString(),
-            CompanyId = int.Parse(ConfigurationManager.AppSettings["SimPro_API_CompanyId"].ToString()),
-            CachePath = ConfigurationManager.AppSettings["SimPro_API_CachePath"].ToString()
-        };
+            configuration = ConfigurationHelper.Configuration;
+            simProSettings = new AnchorSafe.SimPro.SimProSettings()
+            {
+                Host = configuration["SimPro_API_BaseUrl"] ?? string.Empty,
+                Version = configuration["SimPro_API_Version"] ?? string.Empty,
+                Key = configuration["SimPro_API_Key"] ?? string.Empty,
+                CompanyId = configuration.GetValue<int>("SimPro_API_CompanyId"),
+                CachePath = configuration["SimPro_API_CachePath"] ?? string.Empty
+            };
+        }
 
         [HttpGet]
         public Task<IHttpActionResult> Hello()
@@ -55,7 +63,7 @@ namespace AnchorSafe.API.Controllers
                 return Task.FromResult(result);
             }
 
-            if (param != ConfigurationManager.AppSettings["AS_API_CronToken"].ToString())
+            if (!String.Equals(param, configuration["AS_API_CronToken"], StringComparison.Ordinal))
             {
                 result = ResponseMessage(Request.CreateResponse(HttpStatusCode.BadRequest, new { result = "Still a bad request - incorrect token." }));
                 return Task.FromResult(result);
@@ -110,7 +118,7 @@ namespace AnchorSafe.API.Controllers
             if (string.IsNullOrEmpty(param))
                 return ResponseMessage(Request.CreateResponse(HttpStatusCode.BadRequest, new { result = "Bad request - missing token." }));
 
-            if (param != ConfigurationManager.AppSettings["AS_API_CronToken"].ToString())
+            if (!String.Equals(param, configuration["AS_API_CronToken"], StringComparison.Ordinal))
                 return ResponseMessage(Request.CreateResponse(HttpStatusCode.BadRequest, new { result = "Still a bad request - incorrect token." }));
 
             Stopwatch stopwatch = new Stopwatch();
@@ -300,8 +308,8 @@ namespace AnchorSafe.API.Controllers
                             JobContainer jobContainer = Newtonsoft.Json.JsonConvert.DeserializeObject<JobContainer>(data.ToString());
                             if (jobContainer != null && jobContainer.Items.Any())
                             {
-                                int adminUserId = int.Parse(ConfigurationManager.AppSettings["AS_API_AdminUserId"].ToString());
-                                int unassignedUserId = int.Parse(ConfigurationManager.AppSettings["AS_API_UnassignedUserId"].ToString());
+                                int adminUserId = configuration.GetValue<int>("AS_API_AdminUserId");
+                                int unassignedUserId = configuration.GetValue<int>("AS_API_UnassignedUserId");
 
                                 // Use data to update local store
                                 using (Data.AnchorSafe_DbContext db = new AnchorSafe.Data.AnchorSafe_DbContext())
@@ -598,8 +606,8 @@ namespace AnchorSafe.API.Controllers
             //            if (jobContainer != null && jobContainer.Items.Any())
             //            {
 
-            //                int adminUserId = int.Parse(ConfigurationManager.AppSettings["AS_API_AdminUserId"].ToString());
-            //                int unassignedUserId = int.Parse(ConfigurationManager.AppSettings["AS_API_UnassignedUserId"].ToString());
+            //                int adminUserId = configuration.GetValue<int>("AS_API_AdminUserId");
+            //                int unassignedUserId = configuration.GetValue<int>("AS_API_UnassignedUserId");
             //                int count = 0;
 
             //                // Use data to update local store

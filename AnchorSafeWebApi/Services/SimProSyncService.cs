@@ -1,8 +1,9 @@
-﻿using AnchorSafe.SimPro;
+using AnchorSafe.API.Helpers;
+using AnchorSafe.SimPro;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -165,13 +166,14 @@ namespace AnchorSafe.API.Services
         private void PerformSync(SimProTable tables)
         {
             log.Info($"SimProSyncJob {TaskId}: Entering PerformSync");
+            IConfiguration configuration = ConfigurationHelper.Configuration;
             SimProSettings simProSettings = new SimProSettings
             {
-                Host = ConfigurationManager.AppSettings["SimPro_API_BaseUrl"],
-                Version = ConfigurationManager.AppSettings["SimPro_API_Version"],
-                Key = ConfigurationManager.AppSettings["SimPro_API_Key"],
-                CompanyId = Int32.Parse(ConfigurationManager.AppSettings["SimPro_API_CompanyId"]),
-                CachePath = ConfigurationManager.AppSettings["SimPro_API_CachePath"]
+                Host = configuration["SimPro_API_BaseUrl"] ?? string.Empty,
+                Version = configuration["SimPro_API_Version"] ?? string.Empty,
+                Key = configuration["SimPro_API_Key"] ?? string.Empty,
+                CompanyId = configuration.GetValue<int>("SimPro_API_CompanyId"),
+                CachePath = configuration["SimPro_API_CachePath"] ?? string.Empty
             };
 
             if (tables.HasFlag(SimProTable.Clients))
